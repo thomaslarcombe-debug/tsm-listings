@@ -11,9 +11,13 @@
   :root { --brand:#5C4073; --brand-light:#EDE4F3; --ok:#2E7D32; --err:#C62828; --text:#222; --muted:#666; }
   * { box-sizing: border-box; }
   body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--text); background:#FAF8FC; }
-  header { background:var(--brand); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; }
+  .top { position:sticky; top:0; z-index:5; }
+  header { background:var(--brand); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
   header h1 { font-size:18px; margin:0; }
   header button { background:none; border:none; color:#fff; font-size:22px; padding:4px 8px; }
+  nav.tabs { display:flex; background:var(--brand); }
+  nav.tabs button { flex:1; background:none; border:none; color:#D9CCE4; font-size:15px; font-weight:600; padding:10px 0 12px; border-bottom:3px solid transparent; }
+  nav.tabs button.active { color:#fff; border-bottom-color:#fff; }
   main { padding:16px; max-width:560px; margin:0 auto; }
   h2 { font-size:15px; margin:20px 0 10px; color:var(--brand); }
   .grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
@@ -27,9 +31,17 @@
   .slot .clear { position:absolute; top:6px; right:6px; z-index:2; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:30px; height:30px; font-size:16px; display:none; }
   .slot.filled .clear { display:block; }
   label.field { display:block; margin-bottom:12px; font-size:14px; font-weight:600; }
-  label.field input, label.field textarea { display:block; width:100%; margin-top:4px; padding:12px; font-size:16px; border:1px solid #CCC; border-radius:10px; font-family:inherit; background:#fff; }
+  label.field input, label.field textarea, label.field select { display:block; width:100%; margin-top:4px; padding:12px; font-size:16px; border:1px solid #CCC; border-radius:10px; font-family:inherit; background:#fff; color:var(--text); }
   textarea { min-height:70px; resize:vertical; }
-  .btn { display:block; width:100%; padding:16px; font-size:17px; font-weight:700; border:none; border-radius:12px; background:var(--brand); color:#fff; margin-top:8px; }
+  .withMic { display:flex; gap:8px; align-items:flex-start; margin-top:4px; }
+  .withMic textarea { margin-top:0 !important; flex:1; }
+  .mic { flex:none; width:48px; height:48px; border-radius:50%; border:none; background:var(--brand-light); color:var(--brand); font-size:22px; }
+  .mic.listening { background:var(--err); color:#fff; animation:pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity:.6; } }
+  .checks { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .checks label { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #DDD; border-radius:10px; padding:10px; font-size:15px; }
+  .checks input { width:20px; height:20px; accent-color:var(--brand); }
+  .btn { display:block; width:100%; padding:16px; font-size:17px; font-weight:700; border:none; border-radius:12px; background:var(--brand); color:#fff; margin-top:8px; text-align:center; text-decoration:none; }
   .btn:disabled { background:#B9AEC2; }
   .btn.secondary { background:var(--brand-light); color:var(--brand); }
   .status { margin-top:14px; padding:12px; border-radius:10px; font-size:15px; display:none; white-space:pre-line; }
@@ -41,6 +53,29 @@
   .progress div { height:100%; width:0; background:var(--brand); transition:width .2s; }
   .hidden { display:none !important; }
   .hint { font-size:13px; color:var(--muted); margin:-4px 0 12px; }
+
+  /* Items list */
+  .listTools { display:flex; gap:8px; margin-bottom:10px; }
+  .listTools input { flex:1; padding:11px; font-size:16px; border:1px solid #CCC; border-radius:10px; }
+  .listTools button { border:none; background:var(--brand-light); color:var(--brand); border-radius:10px; padding:0 14px; font-size:18px; }
+  .chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; }
+  .chips button { flex:none; border:1px solid #CDBEDA; background:#fff; color:var(--brand); border-radius:16px; padding:6px 12px; font-size:13px; }
+  .chips button.active { background:var(--brand); color:#fff; border-color:var(--brand); }
+  .item { background:#fff; border:1px solid #E2D8EA; border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; cursor:pointer; }
+  .item .main { min-width:0; }
+  .item .id { font-size:12px; color:var(--muted); }
+  .item .title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item .meta { font-size:13px; color:var(--muted); margin-top:2px; }
+  .item .right { text-align:right; flex:none; }
+  .badge { display:inline-block; font-size:12px; padding:3px 8px; border-radius:10px; background:var(--brand-light); color:var(--brand); }
+  .badge.Sold, .badge.Packed { background:#E6F4E7; color:var(--ok); }
+  .badge.Archived { background:#EEE; color:#777; }
+  .badge.Listed { background:#E3F0FB; color:#1565C0; }
+  .price { font-weight:700; margin-top:4px; }
+  .empty { text-align:center; color:var(--muted); padding:30px 10px; }
+  .editHead { display:flex; align-items:center; gap:10px; margin:4px 0 12px; }
+  .editHead button { border:none; background:var(--brand-light); color:var(--brand); border-radius:10px; padding:8px 12px; font-size:15px; }
+  .editHead h2 { margin:0; }
 
   /* Built-in camera */
   #camera { position:fixed; inset:0; background:#000; z-index:20; display:flex; flex-direction:column; }
@@ -56,10 +91,16 @@
 </style>
 </head>
 <body>
-<header>
-  <h1>TSM Listings</h1>
-  <button id="settingsBtn" aria-label="Settings">⚙︎</button>
-</header>
+<div class="top">
+  <header>
+    <h1>TSM Listings</h1>
+    <button id="settingsBtn" aria-label="Settings">⚙︎</button>
+  </header>
+  <nav class="tabs hidden" id="tabs">
+    <button id="tabAdd" class="active">Add item</button>
+    <button id="tabItems">Items</button>
+  </nav>
+</div>
 
 <main>
   <!-- Setup screen: shown on first launch, or from the cog -->
@@ -77,27 +118,47 @@
     <div class="status" id="setupStatus"></div>
   </section>
 
-  <!-- Main screen: capture one item -->
+  <!-- Add item -->
   <section id="captureView" class="hidden">
     <h2>Photos</h2>
     <div class="grid" id="slots"></div>
 
-    <h2>Details</h2>
-    <label class="field">Supplier bag
-      <input id="bagInput" type="text" placeholder="e.g. Bag 12 – Supplier name">
-    </label>
-    <p class="hint">Kept for the next item, so you only type it once per bag.</p>
-    <label class="field">Bag cost (£, optional)
-      <input id="costInput" type="number" inputmode="decimal" step="0.01" min="0">
-    </label>
+    <h2>Notes</h2>
     <label class="field">Notes (optional)
-      <textarea id="notesInput" placeholder="e.g. small mark on left cuff"></textarea>
+      <div class="withMic">
+        <textarea id="notesInput" placeholder="e.g. small mark on left cuff"></textarea>
+        <button type="button" class="mic" data-target="notesInput" aria-label="Dictate notes">🎤</button>
+      </div>
     </label>
 
     <button class="btn" id="submitBtn" disabled>Submit item</button>
     <button class="btn secondary hidden" id="discardBtn">Start again (clear this item)</button>
     <div class="status" id="status"></div>
     <div class="progress hidden" id="progress"><div></div></div>
+  </section>
+
+  <!-- Items list -->
+  <section id="itemsView" class="hidden">
+    <div class="listTools">
+      <input id="searchInput" type="search" placeholder="Search ID, title, brand, notes…">
+      <button id="refreshBtn" aria-label="Refresh">⟳</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="itemsList"></div>
+    <div class="status" id="itemsStatus"></div>
+  </section>
+
+  <!-- Edit one item -->
+  <section id="editView" class="hidden">
+    <div class="editHead">
+      <button id="backBtn">‹ Back</button>
+      <h2 id="editTitle">TSM-0000</h2>
+    </div>
+    <a class="btn secondary" id="photosLink" target="_blank" rel="noopener">Open photos in Drive</a>
+    <div style="height:12px"></div>
+    <div id="editForm"></div>
+    <button class="btn" id="saveItemBtn">Save changes</button>
+    <div class="status" id="editStatus"></div>
   </section>
 </main>
 
@@ -130,6 +191,23 @@
     { name: 'Flaw 1', required: false },
     { name: 'Flaw 2', required: false }
   ];
+  var STATUSES = ['New', 'Ready to list', 'Listed', 'Sold', 'Packed', 'Archived'];
+
+  // Fields shown on the edit screen, in order. type: text | long | number | status | checks
+  var EDIT_FIELDS = [
+    { h: 'Status', type: 'status' },
+    { h: 'Title', type: 'text' },
+    { h: 'Price (£)', type: 'number' },
+    { h: 'Brand', type: 'text' },
+    { h: 'Size', type: 'text' },
+    { h: 'Colour', type: 'text' },
+    { h: 'Condition', type: 'text' },
+    { h: 'Category', type: 'text' },
+    { h: 'Description', type: 'long' },
+    { h: 'Hashtags', type: 'long' },
+    { h: 'Notes', type: 'long' },
+    { h: 'checks', type: 'checks', list: ['Listed Vinted', 'Listed eBay', 'Listed Shopify', 'Sold'] }
+  ];
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -139,7 +217,7 @@
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
 
-  // IndexedDB keeps the current item (resized photos + fields) so a page
+  // IndexedDB keeps the current item (resized photos + notes) so a page
   // reload, e.g. Android closing Chrome for memory, loses nothing.
   var draftDB = (function () {
     var dbp = null;
@@ -176,32 +254,32 @@
   var pending = null;       // in-progress upload, kept so "Try again" can resume
 
   function saveDraft() {
-    return draftDB.save({
-      photos: photos,
-      cost: $('costInput').value,
-      notes: $('notesInput').value,
-      pending: pending
-    });
+    return draftDB.save({ photos: photos, notes: $('notesInput').value, pending: pending });
   }
 
-  // ---- Screens ----
+  // ---- Screens and tabs ----
+  var VIEWS = ['setupView', 'captureView', 'itemsView', 'editView'];
+  function show(view) {
+    VIEWS.forEach(function (v) { $(v).classList.toggle('hidden', v !== view); });
+    $('tabs').classList.toggle('hidden', view === 'setupView');
+    $('tabAdd').classList.toggle('active', view === 'captureView');
+    $('tabItems').classList.toggle('active', view === 'itemsView' || view === 'editView');
+    window.scrollTo(0, 0);
+  }
   function showSetup(canCancel) {
     $('urlInput').value = store.get('tsm.url') || DEFAULT_URL;
     $('keyInput').value = store.get('tsm.key') || '';
     $('cancelSetupBtn').classList.toggle('hidden', !canCancel);
     setStatus('setupStatus', '', '');
-    $('setupView').classList.remove('hidden');
-    $('captureView').classList.add('hidden');
-  }
-  function showCapture() {
-    $('setupView').classList.add('hidden');
-    $('captureView').classList.remove('hidden');
+    show('setupView');
   }
   function setStatus(id, type, text) {
     var el = $(id);
     el.className = 'status' + (text ? ' show ' + type : '');
     el.textContent = text;
   }
+  $('tabAdd').addEventListener('click', function () { show('captureView'); });
+  $('tabItems').addEventListener('click', function () { show('itemsView'); loadItems(); });
 
   // ---- Talking to the Apps Script backend ----
   // text/plain avoids a CORS preflight, which Apps Script doesn't answer.
@@ -230,13 +308,44 @@
     setStatus('setupStatus', 'info', 'Testing connection…');
     call('ping').then(function () {
       setStatus('setupStatus', 'ok', 'Connected.');
-      setTimeout(showCapture, 600);
+      setTimeout(function () { show('captureView'); }, 600);
     }).catch(function (err) {
       setStatus('setupStatus', 'err', 'Could not connect: ' + err.message);
     });
   });
-  $('cancelSetupBtn').addEventListener('click', showCapture);
+  $('cancelSetupBtn').addEventListener('click', function () { show('captureView'); });
   $('settingsBtn').addEventListener('click', function () { showSetup(true); });
+
+  // ---- Dictation (Chrome's speech recognition) ----
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var activeRec = null;
+  function setupMic(btn) {
+    if (!SR) { btn.classList.add('hidden'); return; }
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (activeRec) { activeRec.stop(); return; }
+      var box = $(btn.getAttribute('data-target'));
+      var before = box.value.replace(/\s+$/, '');
+      var rec = new SR();
+      rec.lang = 'en-GB';
+      rec.interimResults = true;
+      rec.continuous = false;
+      rec.onresult = function (ev) {
+        var text = '';
+        for (var i = 0; i < ev.results.length; i++) text += ev.results[i][0].transcript;
+        box.value = (before ? before + ' ' : '') + text;
+        box.dispatchEvent(new Event('input'));
+      };
+      rec.onerror = function (ev) {
+        if (ev.error === 'not-allowed') alert('Microphone access is blocked. Allow it for this site in Chrome settings.');
+      };
+      rec.onend = function () { btn.classList.remove('listening'); activeRec = null; };
+      activeRec = rec;
+      btn.classList.add('listening');
+      try { rec.start(); } catch (err) { btn.classList.remove('listening'); activeRec = null; }
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.mic'), setupMic);
 
   // ---- Photo slots ----
   var slotEls = {};
@@ -426,15 +535,12 @@
   }
 
   function submit() {
-    var bag = $('bagInput').value.trim();
-    store.set('tsm.bag', bag);
-
     if (!pending) {
       pending = {
         id: null, folderId: null,
         names: SLOTS.map(function (s) { return s.name; }).filter(function (n) { return photos[n]; }),
         uploaded: {},
-        details: { supplierBag: bag, bagCost: $('costInput').value.trim(), notes: $('notesInput').value.trim() }
+        details: { notes: $('notesInput').value.trim() }
       };
     }
     var p = pending;
@@ -473,6 +579,7 @@
     }).then(function () {
       done++; setProgress(done, total);
       setStatus('status', 'ok', '✓ Saved as ' + p.id + '.\nReady for the next item.');
+      itemsCache = null;
       resetForm();
     }).catch(function (err) {
       setStatus('status', 'err', 'Upload stopped: ' + err.message + '\nTap "Try again" to carry on. Nothing already uploaded will be sent twice.');
@@ -483,7 +590,6 @@
   function resetForm() {
     pending = null;
     photos = {};
-    $('costInput').value = '';
     $('notesInput').value = '';
     SLOTS.forEach(function (s) { renderSlot(s.name); });
     updateSubmit();
@@ -499,22 +605,205 @@
       : 'Clear all photos and notes for this item?';
     if (window.confirm(msg)) { resetForm(); setStatus('status', '', ''); }
   });
-  $('costInput').addEventListener('input', saveDraft);
   $('notesInput').addEventListener('input', saveDraft);
-  $('bagInput').addEventListener('input', function () { store.set('tsm.bag', this.value.trim()); });
+
+  // ---- Items tab ----
+  var itemsCache = null;
+  var filter = 'Active';
+  var editing = null;
+
+  function buildChips() {
+    var chips = ['Active', 'All'].concat(STATUSES);
+    var el = $('chips');
+    el.innerHTML = '';
+    chips.forEach(function (c) {
+      var b = document.createElement('button');
+      b.textContent = c;
+      b.className = c === filter ? 'active' : '';
+      b.addEventListener('click', function () { filter = c; buildChips(); renderItems(); });
+      el.appendChild(b);
+    });
+  }
+
+  function loadItems(force) {
+    if (itemsCache && !force) { renderItems(); return; }
+    setStatus('itemsStatus', 'info', 'Loading items…');
+    $('itemsList').innerHTML = '';
+    call('listItems').then(function (res) {
+      itemsCache = res.items || [];
+      setStatus('itemsStatus', '', '');
+      renderItems();
+    }).catch(function (err) {
+      var msg = /Unknown action/.test(err.message)
+        ? 'The backend script needs updating to show items. Paste the new Code.gs and deploy a new version.'
+        : 'Could not load items: ' + err.message;
+      setStatus('itemsStatus', 'err', msg);
+    });
+  }
+
+  function money(v) {
+    return (v === '' || v == null || isNaN(Number(v))) ? '' : '£' + Number(v).toFixed(2);
+  }
+
+  function renderItems() {
+    var q = $('searchInput').value.trim().toLowerCase();
+    var list = (itemsCache || []).filter(function (it) {
+      var st = it['Status'];
+      if (filter === 'Active' && (st === 'Archived' || st === 'Packed')) return false;
+      if (filter !== 'Active' && filter !== 'All' && st !== filter) return false;
+      if (!q) return true;
+      return ['Item ID', 'Title', 'Brand', 'Notes', 'Description', 'Size', 'Colour'].some(function (h) {
+        return String(it[h] || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }).slice().reverse(); // newest first
+
+    var el = $('itemsList');
+    el.innerHTML = '';
+    if (!list.length) {
+      el.innerHTML = '<div class="empty">No items to show.</div>';
+      return;
+    }
+    list.forEach(function (it) {
+      var row = document.createElement('div');
+      row.className = 'item';
+      var title = it['Title'] || it['Notes'] || '(no title yet)';
+      var meta = [it['Brand'], it['Size'], it['Colour']].filter(Boolean).join(' · ');
+      row.innerHTML =
+        '<div class="main"><div class="id"></div><div class="title"></div><div class="meta"></div></div>' +
+        '<div class="right"><span class="badge"></span><div class="price"></div></div>';
+      row.querySelector('.id').textContent = it['Item ID'];
+      row.querySelector('.title').textContent = title;
+      row.querySelector('.meta').textContent = meta;
+      var badge = row.querySelector('.badge');
+      badge.textContent = it['Status'] || '';
+      badge.className = 'badge ' + String(it['Status'] || '').replace(/\s/g, '');
+      row.querySelector('.price').textContent = money(it['Price (£)']);
+      row.addEventListener('click', function () { openEdit(it); });
+      el.appendChild(row);
+    });
+  }
+
+  $('searchInput').addEventListener('input', renderItems);
+  $('refreshBtn').addEventListener('click', function () { loadItems(true); });
+
+  function openEdit(it) {
+    editing = it;
+    $('editTitle').textContent = it['Item ID'];
+    var folder = String(it['Photo folder'] || '');
+    $('photosLink').classList.toggle('hidden', folder.indexOf('http') !== 0);
+    $('photosLink').href = folder;
+    var form = $('editForm');
+    form.innerHTML = '';
+    EDIT_FIELDS.forEach(function (f) {
+      if (f.type === 'checks') {
+        var box = document.createElement('div');
+        box.className = 'checks';
+        f.list.forEach(function (h) {
+          var l = document.createElement('label');
+          l.innerHTML = '<input type="checkbox"> <span></span>';
+          l.querySelector('span').textContent = h.replace('Listed ', 'On ');
+          var cb = l.querySelector('input');
+          cb.checked = it[h] === true;
+          cb.dataset.h = h;
+          box.appendChild(l);
+        });
+        form.appendChild(box);
+        return;
+      }
+      var label = document.createElement('label');
+      label.className = 'field';
+      label.textContent = f.h;
+      var input;
+      if (f.type === 'status') {
+        input = document.createElement('select');
+        STATUSES.forEach(function (s) {
+          var o = document.createElement('option');
+          o.value = o.textContent = s;
+          input.appendChild(o);
+        });
+        input.value = it[f.h] || 'New';
+      } else if (f.type === 'long') {
+        input = document.createElement('textarea');
+        input.value = it[f.h] == null ? '' : it[f.h];
+      } else {
+        input = document.createElement('input');
+        input.type = f.type === 'number' ? 'number' : 'text';
+        if (f.type === 'number') { input.step = '0.01'; input.inputMode = 'decimal'; }
+        input.value = it[f.h] == null ? '' : it[f.h];
+      }
+      input.dataset.h = f.h;
+      if (f.type === 'long') {
+        input.id = 'edit-' + f.h.replace(/\W/g, '');
+        var wrap = document.createElement('div');
+        wrap.className = 'withMic';
+        var mic = document.createElement('button');
+        mic.type = 'button';
+        mic.className = 'mic';
+        mic.textContent = '🎤';
+        mic.setAttribute('data-target', input.id);
+        mic.setAttribute('aria-label', 'Dictate ' + f.h);
+        wrap.appendChild(input);
+        wrap.appendChild(mic);
+        label.appendChild(wrap);
+        setupMic(mic);
+      } else {
+        label.appendChild(input);
+      }
+      form.appendChild(label);
+    });
+    setStatus('editStatus', '', '');
+    show('editView');
+  }
+
+  $('backBtn').addEventListener('click', function () { show('itemsView'); renderItems(); });
+
+  $('saveItemBtn').addEventListener('click', function () {
+    if (!editing) return;
+    var changes = {};
+    Array.prototype.forEach.call($('editForm').querySelectorAll('[data-h]'), function (el) {
+      var h = el.dataset.h;
+      var v = el.type === 'checkbox' ? el.checked : el.value;
+      var old = editing[h];
+      if (el.type === 'checkbox') { if ((old === true) !== v) changes[h] = v; return; }
+      if (String(old == null ? '' : old) !== String(v)) changes[h] = v;
+    });
+    if (!Object.keys(changes).length) { setStatus('editStatus', 'info', 'No changes to save.'); return; }
+    $('saveItemBtn').disabled = true;
+    setStatus('editStatus', 'info', 'Saving…');
+    call('updateItem', { id: editing['Item ID'], changes: changes }).then(function (res) {
+      var idx = itemsCache.indexOf(editing);
+      if (idx !== -1) itemsCache[idx] = res.item;
+      editing = res.item;
+      setStatus('editStatus', 'ok', '✓ Saved.' + ('Sold' in changes ? (changes['Sold'] ? ' Photos moved to Archive.' : ' Photos moved back to Live.') : ''));
+      openEditKeepStatus(res.item);
+    }).catch(function (err) {
+      var msg = /Unknown action/.test(err.message)
+        ? 'The backend script needs updating before items can be edited.'
+        : 'Could not save: ' + err.message;
+      setStatus('editStatus', 'err', msg);
+    }).then(function () { $('saveItemBtn').disabled = false; });
+  });
+
+  // Re-draw the form with saved values but keep the success message.
+  function openEditKeepStatus(it) {
+    var st = $('editStatus').className, txt = $('editStatus').textContent;
+    var y = window.scrollY;
+    openEdit(it);
+    $('editStatus').className = st; $('editStatus').textContent = txt;
+    window.scrollTo(0, y);
+  }
 
   // ---- Start up ----
-  $('bagInput').value = store.get('tsm.bag') || '';
   buildSlots();
+  buildChips();
   updateSubmit();
-  if (store.get('tsm.url') && store.get('tsm.key')) showCapture(); else showSetup(false);
+  if (store.get('tsm.url') && store.get('tsm.key')) show('captureView'); else showSetup(false);
 
   // Bring back anything saved before the page was closed.
   draftDB.load().then(function (d) {
     if (!d) return;
     photos = d.photos || {};
     pending = d.pending || null;
-    $('costInput').value = d.cost || '';
     $('notesInput').value = d.notes || '';
     SLOTS.forEach(function (s) { renderSlot(s.name); });
     updateSubmit();

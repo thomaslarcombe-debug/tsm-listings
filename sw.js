@@ -1,6 +1,6 @@
 // Caches the app's own files so it opens quickly and installs as an app.
 // Uploads to Google always go to the network.
-const CACHE = 'tsm-listings-v2';
+const CACHE = 'tsm-listings-v3';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
