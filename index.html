@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5C4073">
+<title>TSM Listings</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root { --brand:#5C4073; --brand-light:#EDE4F3; --ok:#2E7D32; --err:#C62828; --text:#222; --muted:#666; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--text); background:#FAF8FC; }
+  header { background:var(--brand); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0; }
+  header button { background:none; border:none; color:#fff; font-size:22px; padding:4px 8px; }
+  main { padding:16px; max-width:560px; margin:0 auto; }
+  h2 { font-size:15px; margin:20px 0 10px; color:var(--brand); }
+  .grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
+  .slot { position:relative; aspect-ratio:3/4; border:2px dashed #BBA8CC; border-radius:12px; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; text-align:center; padding:6px; }
+  .slot.filled { border-style:solid; border-color:var(--brand); padding:0; }
+  .slot img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .slot .label { position:relative; font-weight:600; font-size:14px; }
+  .slot .req { font-size:11px; color:var(--muted); margin-top:2px; }
+  .slot.filled .label { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.55); color:#fff; padding:4px; font-size:13px; }
+  .slot .cam { font-size:28px; margin-bottom:4px; }
+  .slot .clear { position:absolute; top:6px; right:6px; z-index:2; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:30px; height:30px; font-size:16px; display:none; }
+  .slot.filled .clear { display:block; }
+  .slot input { position:absolute; inset:0; opacity:0; }
+  .slot.filled input { pointer-events:none; }
+  label.field { display:block; margin-bottom:12px; font-size:14px; font-weight:600; }
+  label.field input, label.field textarea { display:block; width:100%; margin-top:4px; padding:12px; font-size:16px; border:1px solid #CCC; border-radius:10px; font-family:inherit; background:#fff; }
+  textarea { min-height:70px; resize:vertical; }
+  .btn { display:block; width:100%; padding:16px; font-size:17px; font-weight:700; border:none; border-radius:12px; background:var(--brand); color:#fff; margin-top:8px; }
+  .btn:disabled { background:#B9AEC2; }
+  .btn.secondary { background:var(--brand-light); color:var(--brand); }
+  .status { margin-top:14px; padding:12px; border-radius:10px; font-size:15px; display:none; white-space:pre-line; }
+  .status.show { display:block; }
+  .status.info { background:var(--brand-light); color:var(--brand); }
+  .status.ok { background:#E6F4E7; color:var(--ok); }
+  .status.err { background:#FBE7E7; color:var(--err); }
+  .progress { height:8px; background:#E3DAEA; border-radius:4px; overflow:hidden; margin-top:8px; }
+  .progress div { height:100%; width:0; background:var(--brand); transition:width .2s; }
+  .hidden { display:none !important; }
+  .hint { font-size:13px; color:var(--muted); margin:-4px 0 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>TSM Listings</h1>
+  <button id="settingsBtn" aria-label="Settings">⚙︎</button>
+</header>
+
+<main>
+  <!-- Setup screen: shown on first launch, or from the cog -->
+  <section id="setupView" class="hidden">
+    <h2>Connect to your Google Sheet</h2>
+    <p class="hint">You only need to do this once on each phone.</p>
+    <label class="field">Backend URL
+      <input id="urlInput" type="url" autocomplete="off">
+    </label>
+    <label class="field">App key (from the Settings tab in the Sheet)
+      <input id="keyInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <button class="btn" id="saveSetupBtn">Save and test</button>
+    <button class="btn secondary hidden" id="cancelSetupBtn">Cancel</button>
+    <div class="status" id="setupStatus"></div>
+  </section>
+
+  <!-- Main screen: capture one item -->
+  <section id="captureView" class="hidden">
+    <h2>Photos</h2>
+    <div class="grid" id="slots"></div>
+
+    <h2>Details</h2>
+    <label class="field">Supplier bag
+      <input id="bagInput" type="text" placeholder="e.g. Bag 12 – Supplier name">
+    </label>
+    <p class="hint">Kept for the next item, so you only type it once per bag.</p>
+    <label class="field">Bag cost (£, optional)
+      <input id="costInput" type="number" inputmode="decimal" step="0.01" min="0">
+    </label>
+    <label class="field">Notes (optional)
+      <textarea id="notesInput" placeholder="e.g. small mark on left cuff"></textarea>
+    </label>
+
+    <button class="btn" id="submitBtn" disabled>Submit item</button>
+    <div class="status" id="status"></div>
+    <div class="progress hidden" id="progress"><div></div></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbwtv9KGQrRmQqiCzOu0RbjsN4JTKhB2OleqIluqvuNfJFJIZ7Hb8hyEO93_mK3pzgysaQ/exec';
+  var MAX_EDGE = 1600;       // longest side in pixels after resizing
+  var JPEG_QUALITY = 0.82;
+  var SLOTS = [
+    { name: 'Front',  required: true },
+    { name: 'Back',   required: true },
+    { name: 'Label',  required: true },
+    { name: 'Detail', required: true },
+    { name: 'Flaw 1', required: false },
+    { name: 'Flaw 2', required: false }
+  ];
+
+  // ---- Small storage wrapper (localStorage can be unavailable) ----
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var photos = {};          // slot name -> File
+  var pending = null;       // in-progress upload, kept so "Try again" can resume
+
+  // ---- Screens ----
+  function showSetup(canCancel) {
+    $('urlInput').value = store.get('tsm.url') || DEFAULT_URL;
+    $('keyInput').value = store.get('tsm.key') || '';
+    $('cancelSetupBtn').classList.toggle('hidden', !canCancel);
+    setStatus('setupStatus', '', '');
+    $('setupView').classList.remove('hidden');
+    $('captureView').classList.add('hidden');
+  }
+  function showCapture() {
+    $('setupView').classList.add('hidden');
+    $('captureView').classList.remove('hidden');
+  }
+
+  function setStatus(id, type, text) {
+    var el = $(id);
+    el.className = 'status' + (text ? ' show ' + type : '');
+    el.textContent = text;
+  }
+
+  // ---- Talking to the Apps Script backend ----
+  // text/plain avoids a CORS preflight, which Apps Script doesn't answer.
+  function call(action, data) {
+    var body = Object.assign({ action: action, key: store.get('tsm.key') }, data || {});
+    return fetch(store.get('tsm.url'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('Server replied ' + r.status);
+      return r.json();
+    }).then(function (res) {
+      if (!res.ok) throw new Error(res.error || 'Unknown error');
+      return res;
+    });
+  }
+
+  // ---- Setup ----
+  $('saveSetupBtn').addEventListener('click', function () {
+    var url = $('urlInput').value.trim();
+    var key = $('keyInput').value.trim();
+    if (!url || !key) { setStatus('setupStatus', 'err', 'Enter both the URL and the app key.'); return; }
+    store.set('tsm.url', url);
+    store.set('tsm.key', key);
+    setStatus('setupStatus', 'info', 'Testing connection…');
+    call('ping').then(function () {
+      setStatus('setupStatus', 'ok', 'Connected.');
+      setTimeout(showCapture, 600);
+    }).catch(function (err) {
+      setStatus('setupStatus', 'err', 'Could not connect: ' + err.message);
+    });
+  });
+  $('cancelSetupBtn').addEventListener('click', showCapture);
+  $('settingsBtn').addEventListener('click', function () { showSetup(true); });
+
+  // ---- Photo slots ----
+  function buildSlots() {
+    var grid = $('slots');
+    grid.innerHTML = '';
+    SLOTS.forEach(function (s) {
+      var slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.innerHTML =
+        '<div class="cam">📷</div><div class="label"></div><div class="req"></div>' +
+        '<button class="clear" type="button" aria-label="Remove photo">✕</button>' +
+        '<input type="file" accept="image/*" capture="environment">';
+      slot.querySelector('.label').textContent = s.name;
+      slot.querySelector('.req').textContent = s.required ? 'Required' : 'Optional';
+      var input = slot.querySelector('input');
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        photos[s.name] = file;
+        var old = slot.querySelector('img');
+        if (old) { URL.revokeObjectURL(old.src); old.remove(); }
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        slot.insertBefore(img, slot.firstChild);
+        slot.classList.add('filled');
+        input.value = '';
+        updateSubmit();
+      });
+      slot.querySelector('.clear').addEventListener('click', function (e) {
+        e.stopPropagation();
+        delete photos[s.name];
+        var img = slot.querySelector('img');
+        if (img) { URL.revokeObjectURL(img.src); img.remove(); }
+        slot.classList.remove('filled');
+        updateSubmit();
+      });
+      grid.appendChild(slot);
+    });
+  }
+
+  function missingRequired() {
+    return SLOTS.filter(function (s) { return s.required && !photos[s.name]; }).map(function (s) { return s.name; });
+  }
+  function updateSubmit() {
+    var missing = missingRequired();
+    $('submitBtn').disabled = missing.length > 0;
+    $('submitBtn').textContent = missing.length ? 'Still needed: ' + missing.join(', ') : 'Submit item';
+  }
+
+  // ---- Resize a photo on the phone before upload ----
+  function resizeToBase64(file) {
+    var load = window.createImageBitmap
+      ? createImageBitmap(file, { imageOrientation: 'from-image' })
+      : new Promise(function (resolve, reject) {
+          var img = new Image();
+          img.onload = function () { resolve(img); };
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+    return load.then(function (src) {
+      var w = src.width, h = src.height;
+      var scale = Math.min(1, MAX_EDGE / Math.max(w, h));
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
+      if (src.close) src.close();
+      return canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1];
+    });
+  }
+
+  // ---- Submit: start item, upload each photo, then add the row ----
+  function setProgress(done, total) {
+    $('progress').classList.remove('hidden');
+    $('progress').firstElementChild.style.width = Math.round((done / total) * 100) + '%';
+  }
+
+  function submit() {
+    var bag = $('bagInput').value.trim();
+    store.set('tsm.bag', bag);
+
+    if (!pending) {
+      pending = {
+        id: null, folderId: null,
+        names: SLOTS.map(function (s) { return s.name; }).filter(function (n) { return photos[n]; }),
+        uploaded: {},
+        details: { supplierBag: bag, bagCost: $('costInput').value.trim(), notes: $('notesInput').value.trim() }
+      };
+    }
+    var p = pending;
+    var total = p.names.length + 2;
+    var done = 0;
+
+    $('submitBtn').disabled = true;
+    $('submitBtn').textContent = 'Uploading…';
+    setStatus('status', 'info', 'Starting…');
+
+    var chain = Promise.resolve();
+    if (!p.id) {
+      chain = chain.then(function () { return call('startItem'); }).then(function (res) {
+        p.id = res.id; p.folderId = res.folderId;
+      });
+    }
+    chain = chain.then(function () { done++; setProgress(done, total); });
+
+    p.names.forEach(function (name) {
+      chain = chain.then(function () {
+        if (p.uploaded[name]) { done++; setProgress(done, total); return; }
+        setStatus('status', 'info', p.id + ': uploading ' + name + '…');
+        return resizeToBase64(photos[name]).then(function (b64) {
+          return call('uploadPhoto', { id: p.id, folderId: p.folderId, name: name, data: b64 });
+        }).then(function () {
+          p.uploaded[name] = true; done++; setProgress(done, total);
+        });
+      });
+    });
+
+    chain.then(function () {
+      setStatus('status', 'info', p.id + ': saving to the sheet…');
+      return call('finishItem', Object.assign({ id: p.id, folderId: p.folderId }, p.details));
+    }).then(function () {
+      done++; setProgress(done, total);
+      setStatus('status', 'ok', '✓ Saved as ' + p.id + '.\nReady for the next item.');
+      resetForm();
+    }).catch(function (err) {
+      setStatus('status', 'err', 'Upload stopped: ' + err.message + '\nTap "Try again" to carry on. Nothing already uploaded will be sent twice.');
+      $('submitBtn').disabled = false;
+      $('submitBtn').textContent = 'Try again';
+    });
+  }
+
+  function resetForm() {
+    pending = null;
+    photos = {};
+    buildSlots();
+    $('costInput').value = '';
+    $('notesInput').value = '';
+    updateSubmit();
+    setTimeout(function () { $('progress').classList.add('hidden'); }, 800);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  $('submitBtn').addEventListener('click', submit);
+
+  // ---- Start up ----
+  $('bagInput').value = store.get('tsm.bag') || '';
+  buildSlots();
+  updateSubmit();
+  if (store.get('tsm.url') && store.get('tsm.key')) showCapture(); else showSetup(false);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
