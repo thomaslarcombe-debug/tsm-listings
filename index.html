@@ -119,6 +119,7 @@
   <nav class="tabs hidden" id="tabs">
     <button id="tabAdd" class="active">Add item</button>
     <button id="tabItems">Items</button>
+    <button id="tabShopify">Shopify</button>
   </nav>
 </div>
 
@@ -166,6 +167,50 @@
     <div class="chips" id="chips"></div>
     <div id="itemsList"></div>
     <div class="status" id="itemsStatus"></div>
+  </section>
+
+  <!-- Shopify: new product form -->
+  <section id="shopifyView" class="hidden">
+    <h2>New Shopify product</h2>
+    <p class="hint">Claude tidies the title, writes the description from the sections below (empty sections are left out), picks the category and creates a draft.</p>
+    <label class="field">Title
+      <input id="spTitle" type="text" placeholder="e.g. 10kg mixed winter coats wholesale bag">
+    </label>
+    <label class="field">Intro (key terms)
+      <div class="withMic"><textarea id="spIntro" placeholder="e.g. winter coats, puffers, parkas, great for resellers"></textarea><button type="button" class="mic" data-target="spIntro" aria-label="Dictate intro">🎤</button></div>
+    </label>
+    <label class="field">Quantity
+      <div class="withMic"><textarea id="spQuantity" placeholder="e.g. approx 25–30 items per 10kg bag"></textarea><button type="button" class="mic" data-target="spQuantity" aria-label="Dictate quantity">🎤</button></div>
+    </label>
+    <label class="field">Condition
+      <div class="withMic"><textarea id="spCondition" placeholder="e.g. grade A and B, some may have minor wear"></textarea><button type="button" class="mic" data-target="spCondition" aria-label="Dictate condition">🎤</button></div>
+    </label>
+    <p class="hint">The grading-page sentence is always added to Condition.</p>
+    <label class="field">Unique assortment
+      <select id="spAssortment">
+        <option value="">(leave out)</option>
+        <option>New</option>
+        <option>Hand Picked</option>
+        <option>Unchecked Bundle</option>
+      </select>
+    </label>
+    <label class="field">Price (£)
+      <input id="spPrice" type="number" inputmode="decimal" step="0.01" min="0">
+    </label>
+    <label class="field">Inventory
+      <input id="spInventory" type="number" inputmode="numeric" step="1" min="0">
+    </label>
+    <label class="field">Weight (kg)
+      <input id="spWeight" type="number" inputmode="decimal" step="0.01" min="0">
+    </label>
+    <button class="btn" id="spSaveBtn">Save to queue</button>
+    <div class="status" id="spStatus"></div>
+
+    <h2>Queue and recent products</h2>
+    <p class="hint" id="spSchedule">Queued bags are turned into Shopify drafts automatically at about 9:40, 13:40 and 17:40 each day.</p>
+    <button class="btn secondary hidden" id="spSendBtn" disabled>Send queued to Shopify</button>
+    <div class="status" id="spSendStatus"></div>
+    <div id="spList" style="margin-top:12px"></div>
   </section>
 
   <!-- Edit one item -->
@@ -285,12 +330,13 @@
   }
 
   // ---- Screens and tabs ----
-  var VIEWS = ['setupView', 'captureView', 'itemsView', 'editView'];
+  var VIEWS = ['setupView', 'captureView', 'itemsView', 'editView', 'shopifyView'];
   function show(view) {
     VIEWS.forEach(function (v) { $(v).classList.toggle('hidden', v !== view); });
     $('tabs').classList.toggle('hidden', view === 'setupView');
     $('tabAdd').classList.toggle('active', view === 'captureView');
     $('tabItems').classList.toggle('active', view === 'itemsView' || view === 'editView');
+    $('tabShopify').classList.toggle('active', view === 'shopifyView');
     window.scrollTo(0, 0);
   }
   function showSetup(canCancel) {
@@ -307,6 +353,7 @@
   }
   $('tabAdd').addEventListener('click', function () { show('captureView'); });
   $('tabItems').addEventListener('click', function () { show('itemsView'); loadItems(); });
+  $('tabShopify').addEventListener('click', function () { show('shopifyView'); loadShopify(); });
 
   // ---- Talking to the Apps Script backend ----
   // text/plain avoids a CORS preflight, which Apps Script doesn't answer.
@@ -905,6 +952,74 @@
     $('editStatus').className = st; $('editStatus').textContent = txt;
     window.scrollTo(0, y);
   }
+
+  // ---- Shopify tab ----
+  var SP_FIELDS = ['spTitle', 'spIntro', 'spQuantity', 'spCondition', 'spAssortment', 'spPrice', 'spInventory', 'spWeight'];
+
+  function loadShopify() {
+    call('listShopifyProducts').then(function (res) {
+      var q = res.queued || 0;
+      $('spSendBtn').disabled = q === 0;
+      $('spSendBtn').textContent = q ? 'Send ' + q + ' queued to Shopify' : 'Nothing queued';
+      $('spSchedule').textContent = (q ? q + ' bag' + (q > 1 ? 's' : '') + ' queued. ' : 'Nothing queued. ') + 'Queued bags are turned into Shopify drafts automatically at about 9:40, 13:40 and 17:40 each day.';
+      var el = $('spList');
+      el.innerHTML = '';
+      if (!res.products.length) { el.innerHTML = '<div class="empty">No Shopify products yet.</div>'; return; }
+      res.products.forEach(function (p) {
+        var row = document.createElement(p.link ? 'a' : 'div');
+        row.className = 'item';
+        row.style.textDecoration = 'none'; row.style.color = 'inherit';
+        if (p.link) { row.href = p.link; row.target = '_blank'; row.rel = 'noopener'; }
+        row.innerHTML = '<div class="main"><div class="id"></div><div class="title"></div><div class="meta"></div></div>' +
+          '<div class="right"><span class="badge"></span><div class="price"></div></div>';
+        row.querySelector('.id').textContent = p.id;
+        row.querySelector('.title').textContent = p.title;
+        row.querySelector('.meta').textContent = p.note || (p.link ? 'Tap to open the draft in Shopify' : '');
+        var b = row.querySelector('.badge');
+        b.textContent = p.status;
+        b.className = 'badge ' + (p.status === 'Draft created' ? 'Sold' : p.status === 'Error' ? 'Archived' : '');
+        row.querySelector('.price').textContent = money(p.price);
+        el.appendChild(row);
+      });
+    }).catch(function (err) {
+      setStatus('spSendStatus', 'err', /Unknown action/.test(err.message)
+        ? 'The backend script needs updating for the Shopify tab.' : 'Could not load: ' + err.message);
+    });
+  }
+
+  $('spSaveBtn').addEventListener('click', function () {
+    var v = {};
+    SP_FIELDS.forEach(function (f) { v[f] = $(f).value.trim(); });
+    var missing = [];
+    if (!v.spTitle) missing.push('Title');
+    if (!v.spPrice) missing.push('Price');
+    if (!v.spInventory) missing.push('Inventory');
+    if (!v.spWeight) missing.push('Weight');
+    if (missing.length) { setStatus('spStatus', 'err', 'Please fill in: ' + missing.join(', ')); return; }
+    $('spSaveBtn').disabled = true;
+    setStatus('spStatus', 'info', 'Saving…');
+    call('saveShopifyProduct', {
+      title: v.spTitle, intro: v.spIntro, quantity: v.spQuantity, condition: v.spCondition,
+      assortment: v.spAssortment, price: v.spPrice, inventory: v.spInventory, weight: v.spWeight
+    }).then(function (res) {
+      setStatus('spStatus', 'ok', '✓ Queued as ' + res.id + '. It will become a Shopify draft at the next automatic run.');
+      SP_FIELDS.forEach(function (f) { $(f).value = ''; });
+      loadShopify();
+    }).catch(function (err) {
+      setStatus('spStatus', 'err', 'Could not save: ' + err.message);
+    }).then(function () { $('spSaveBtn').disabled = false; });
+  });
+
+  $('spSendBtn').addEventListener('click', function () {
+    $('spSendBtn').disabled = true;
+    setStatus('spSendStatus', 'info', 'Starting the Claude task…');
+    call('sendToShopify').then(function () {
+      setStatus('spSendStatus', 'ok', '✓ Sent. Claude is creating the drafts now; this usually takes a few minutes. Open this tab again later to see the links.');
+    }).catch(function (err) {
+      setStatus('spSendStatus', 'err', err.message);
+      $('spSendBtn').disabled = false;
+    });
+  });
 
   // ---- Start up ----
   buildSlots();
