@@ -3,25 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#5C4073">
+<meta name="theme-color" content="#5A9798">
 <title>TSM Listings</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <style>
-  :root { --brand:#5C4073; --brand-light:#EDE4F3; --ok:#2E7D32; --err:#C62828; --text:#222; --muted:#666; }
+  :root {
+    /* Colour palette, matched to thriftysenmum.co.uk: change these to restyle the whole app */
+    --header:#5A9798;       /* site banner teal */
+    --brand:#146E76;        /* deep teal: buttons, headings, highlights */
+    --brand-dark:#0B686F;
+    --brand-light:#E3EFEF;  /* soft teal: secondary buttons, info messages */
+    --brand-soft:#9CC3C4;   /* dashed photo boxes */
+    --accent:#D35078;       /* site pink: active tab, progress, mic */
+    --on-brand:#FFFFFF;     /* text on teal */
+    --on-brand-muted:#DCEBEB;
+    --bg:#F6FAFA;           /* page background */
+    --card:#FFFFFF;
+    --line:#DCE8E8;         /* card borders */
+    --disabled:#A9C4C5;
+    --ok:#2E7D32; --ok-bg:#E6F4E7;
+    --err:#C62828; --err-bg:#FBE7E7;
+    --text:#213035; --muted:#5F6E72;
+  }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--text); background:#FAF8FC; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--text); background:var(--bg); }
   .top { position:sticky; top:0; z-index:5; }
-  header { background:var(--brand); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
+  header { background:var(--header); color:var(--on-brand); padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
   header h1 { font-size:18px; margin:0; }
-  header button { background:none; border:none; color:#fff; font-size:22px; padding:4px 8px; }
-  nav.tabs { display:flex; background:var(--brand); }
-  nav.tabs button { flex:1; background:none; border:none; color:#D9CCE4; font-size:15px; font-weight:600; padding:10px 0 12px; border-bottom:3px solid transparent; }
-  nav.tabs button.active { color:#fff; border-bottom-color:#fff; }
+  header button { background:none; border:none; color:var(--on-brand); font-size:22px; padding:4px 8px; }
+  nav.tabs { display:flex; background:var(--header); }
+  nav.tabs button { flex:1; background:none; border:none; color:var(--on-brand-muted); font-size:15px; font-weight:600; padding:10px 0 12px; border-bottom:3px solid transparent; }
+  nav.tabs button.active { color:var(--on-brand); border-bottom-color:var(--accent); }
   main { padding:16px; max-width:560px; margin:0 auto; }
   h2 { font-size:15px; margin:20px 0 10px; color:var(--brand); }
   .grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
-  .slot { position:relative; aspect-ratio:3/4; border:2px dashed #BBA8CC; border-radius:12px; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; text-align:center; padding:6px; cursor:pointer; }
+  .slot { position:relative; aspect-ratio:3/4; border:2px dashed var(--brand-soft); border-radius:12px; background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; text-align:center; padding:6px; cursor:pointer; }
   .slot.filled { border-style:solid; border-color:var(--brand); padding:0; }
   .slot img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
   .slot .label { position:relative; font-weight:600; font-size:14px; }
@@ -31,26 +48,26 @@
   .slot .clear { position:absolute; top:6px; right:6px; z-index:2; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:30px; height:30px; font-size:16px; display:none; }
   .slot.filled .clear { display:block; }
   label.field { display:block; margin-bottom:12px; font-size:14px; font-weight:600; }
-  label.field input, label.field textarea, label.field select { display:block; width:100%; margin-top:4px; padding:12px; font-size:16px; border:1px solid #CCC; border-radius:10px; font-family:inherit; background:#fff; color:var(--text); }
+  label.field input, label.field textarea, label.field select { display:block; width:100%; margin-top:4px; padding:12px; font-size:16px; border:1px solid #CCC; border-radius:10px; font-family:inherit; background:var(--card); color:var(--text); }
   textarea { min-height:70px; resize:vertical; }
   .withMic { display:flex; gap:8px; align-items:flex-start; margin-top:4px; }
   .withMic textarea { margin-top:0 !important; flex:1; }
   .mic { flex:none; width:48px; height:48px; border-radius:50%; border:none; background:var(--brand-light); color:var(--brand); font-size:22px; }
-  .mic.listening { background:var(--err); color:#fff; animation:pulse 1s infinite; }
+  .mic.listening { background:var(--err); color:var(--on-brand); animation:pulse 1s infinite; }
   @keyframes pulse { 50% { opacity:.6; } }
   .checks { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-  .checks label { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid #DDD; border-radius:10px; padding:10px; font-size:15px; }
+  .checks label { display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid #DDD; border-radius:10px; padding:10px; font-size:15px; }
   .checks input { width:20px; height:20px; accent-color:var(--brand); }
-  .btn { display:block; width:100%; padding:16px; font-size:17px; font-weight:700; border:none; border-radius:12px; background:var(--brand); color:#fff; margin-top:8px; text-align:center; text-decoration:none; }
-  .btn:disabled { background:#B9AEC2; }
+  .btn { display:block; width:100%; padding:16px; font-size:17px; font-weight:700; border:none; border-radius:12px; background:var(--brand); color:var(--on-brand); margin-top:8px; text-align:center; text-decoration:none; }
+  .btn:disabled { background:var(--disabled); }
   .btn.secondary { background:var(--brand-light); color:var(--brand); }
   .status { margin-top:14px; padding:12px; border-radius:10px; font-size:15px; display:none; white-space:pre-line; }
   .status.show { display:block; }
   .status.info { background:var(--brand-light); color:var(--brand); }
-  .status.ok { background:#E6F4E7; color:var(--ok); }
-  .status.err { background:#FBE7E7; color:var(--err); }
-  .progress { height:8px; background:#E3DAEA; border-radius:4px; overflow:hidden; margin-top:8px; }
-  .progress div { height:100%; width:0; background:var(--brand); transition:width .2s; }
+  .status.ok { background:var(--ok-bg); color:var(--ok); }
+  .status.err { background:var(--err-bg); color:var(--err); }
+  .progress { height:8px; background:var(--line); border-radius:4px; overflow:hidden; margin-top:8px; }
+  .progress div { height:100%; width:0; background:var(--accent); transition:width .2s; }
   .hidden { display:none !important; }
   .hint { font-size:13px; color:var(--muted); margin:-4px 0 12px; }
 
@@ -59,16 +76,19 @@
   .listTools input { flex:1; padding:11px; font-size:16px; border:1px solid #CCC; border-radius:10px; }
   .listTools button { border:none; background:var(--brand-light); color:var(--brand); border-radius:10px; padding:0 14px; font-size:18px; }
   .chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; }
-  .chips button { flex:none; border:1px solid #CDBEDA; background:#fff; color:var(--brand); border-radius:16px; padding:6px 12px; font-size:13px; }
-  .chips button.active { background:var(--brand); color:#fff; border-color:var(--brand); }
-  .item { background:#fff; border:1px solid #E2D8EA; border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; cursor:pointer; }
-  .item .main { min-width:0; }
+  .chips button { flex:none; border:1px solid var(--brand-soft); background:var(--card); color:var(--brand); border-radius:16px; padding:6px 12px; font-size:13px; }
+  .chips button.active { background:var(--brand); color:var(--on-brand); border-color:var(--brand); }
+  .item { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; cursor:pointer; }
+  .item .main { min-width:0; flex:1; }
+  .thumb { flex:none; width:64px; height:80px; border-radius:8px; background:var(--brand-light); overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:22px; }
+  .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .editThumb { width:120px; height:150px; border-radius:10px; margin-bottom:10px; font-size:30px; }
   .item .id { font-size:12px; color:var(--muted); }
   .item .title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .item .meta { font-size:13px; color:var(--muted); margin-top:2px; }
   .item .right { text-align:right; flex:none; }
   .badge { display:inline-block; font-size:12px; padding:3px 8px; border-radius:10px; background:var(--brand-light); color:var(--brand); }
-  .badge.Sold, .badge.Packed { background:#E6F4E7; color:var(--ok); }
+  .badge.Sold, .badge.Packed { background:var(--ok-bg); color:var(--ok); }
   .badge.Archived { background:#EEE; color:#777; }
   .badge.Listed { background:#E3F0FB; color:#1565C0; }
   .price { font-weight:700; margin-top:4px; }
@@ -154,6 +174,7 @@
       <button id="backBtn">‹ Back</button>
       <h2 id="editTitle">TSM-0000</h2>
     </div>
+    <div class="thumb editThumb" id="editThumb">📷</div>
     <a class="btn secondary" id="photosLink" target="_blank" rel="noopener">Open photos in Drive</a>
     <div style="height:12px"></div>
     <div id="editForm"></div>
@@ -219,36 +240,42 @@
 
   // IndexedDB keeps the current item (resized photos + notes) so a page
   // reload, e.g. Android closing Chrome for memory, loses nothing.
-  var draftDB = (function () {
-    var dbp = null;
-    function open() {
-      if (dbp) return dbp;
-      dbp = new Promise(function (resolve, reject) {
-        try {
-          var req = indexedDB.open('tsm-listings', 1);
-          req.onupgradeneeded = function () { req.result.createObjectStore('draft'); };
-          req.onsuccess = function () { resolve(req.result); };
-          req.onerror = function () { reject(req.error); };
-        } catch (e) { reject(e); }
+  var dbp = null;
+  function openDB() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (resolve, reject) {
+      try {
+        var req = indexedDB.open('tsm-listings', 2);
+        req.onupgradeneeded = function () {
+          var db = req.result;
+          if (!db.objectStoreNames.contains('draft')) db.createObjectStore('draft');
+          if (!db.objectStoreNames.contains('thumbs')) db.createObjectStore('thumbs');
+        };
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
+      } catch (e) { reject(e); }
+    });
+    return dbp;
+  }
+  function idbTx(storeName, mode, fn) {
+    return openDB().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var t = db.transaction(storeName, mode);
+        var r = fn(t.objectStore(storeName));
+        t.oncomplete = function () { resolve(r && r.result); };
+        t.onerror = function () { reject(t.error); };
       });
-      return dbp;
-    }
-    function tx(mode, fn) {
-      return open().then(function (db) {
-        return new Promise(function (resolve, reject) {
-          var t = db.transaction('draft', mode);
-          var r = fn(t.objectStore('draft'));
-          t.oncomplete = function () { resolve(r && r.result); };
-          t.onerror = function () { reject(t.error); };
-        });
-      }).catch(function () { return null; });
-    }
-    return {
-      save: function (v) { return tx('readwrite', function (s) { return s.put(v, 'current'); }); },
-      load: function () { return tx('readonly', function (s) { return s.get('current'); }); },
-      clear: function () { return tx('readwrite', function (s) { return s.delete('current'); }); }
-    };
-  })();
+    }).catch(function () { return null; });
+  }
+  var thumbDB = {
+    get: function (id) { return idbTx('thumbs', 'readonly', function (s) { return s.get(id); }); },
+    put: function (id, blob) { return idbTx('thumbs', 'readwrite', function (s) { return s.put(blob, id); }); }
+  };
+  var draftDB = {
+    save: function (v) { return idbTx('draft', 'readwrite', function (s) { return s.put(v, 'current'); }); },
+    load: function () { return idbTx('draft', 'readonly', function (s) { return s.get('current'); }); },
+    clear: function () { return idbTx('draft', 'readwrite', function (s) { return s.delete('current'); }); }
+  };
 
   var photos = {};          // slot name -> resized JPEG Blob
   var pending = null;       // in-progress upload, kept so "Try again" can resume
@@ -566,7 +593,8 @@
         setStatus('status', 'info', p.id + ': uploading ' + name + '…');
         return blobToBase64(photos[name]).then(function (b64) {
           return call('uploadPhoto', { id: p.id, folderId: p.folderId, name: name, data: b64 });
-        }).then(function () {
+        }).then(function (res) {
+          if (name === 'Front' && res && res.fileId) seedThumb(res.fileId, photos[name]);
           p.uploaded[name] = true; done++; setProgress(done, total);
           return saveDraft();
         });
@@ -606,6 +634,88 @@
     if (window.confirm(msg)) { resetForm(); setStatus('status', '', ''); }
   });
   $('notesInput').addEventListener('input', saveDraft);
+
+  // ---- Thumbnails: cached on the phone, fetched from the backend in small batches ----
+  var thumbURLs = {};      // file ID -> object URL already made
+  var thumbWaiting = {};   // file ID -> [img holders] waiting for it
+  var thumbQueue = [];
+  var thumbBusy = false;
+
+  function showThumb(holder, url) {
+    holder.innerHTML = '';
+    if (!url) { holder.textContent = '📷'; return; }
+    var img = document.createElement('img');
+    img.src = url;
+    img.alt = '';
+    holder.appendChild(img);
+  }
+
+  function wantThumb(fileId, holder) {
+    if (!fileId) { showThumb(holder, null); return; }
+    if (thumbURLs[fileId] !== undefined) { showThumb(holder, thumbURLs[fileId]); return; }
+    (thumbWaiting[fileId] = thumbWaiting[fileId] || []).push(holder);
+    if (thumbWaiting[fileId].length > 1) return; // already being fetched
+    thumbDB.get(fileId).then(function (blob) {
+      if (blob) { deliverThumb(fileId, URL.createObjectURL(blob)); return; }
+      thumbQueue.push(fileId);
+      pumpThumbs();
+    });
+  }
+
+  function deliverThumb(fileId, url) {
+    thumbURLs[fileId] = url;
+    (thumbWaiting[fileId] || []).forEach(function (h) { showThumb(h, url); });
+    delete thumbWaiting[fileId];
+  }
+
+  function pumpThumbs() {
+    if (thumbBusy || !thumbQueue.length) return;
+    thumbBusy = true;
+    var batch = thumbQueue.splice(0, 10);
+    call('getThumbs', { fileIds: batch }).then(function (res) {
+      batch.forEach(function (id) {
+        var t = res.thumbs && res.thumbs[id];
+        if (!t) { deliverThumb(id, null); return; }
+        var bytes = atob(t.data), arr = new Uint8Array(bytes.length);
+        for (var i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        var blob = new Blob([arr], { type: t.type || 'image/png' });
+        thumbDB.put(id, blob);
+        deliverThumb(id, URL.createObjectURL(blob));
+      });
+    }).catch(function () {
+      // Old backend or no signal: show placeholders, try again next time.
+      batch.forEach(function (id) {
+        (thumbWaiting[id] || []).forEach(function (h) { showThumb(h, null); });
+        delete thumbWaiting[id];
+      });
+    }).then(function () { thumbBusy = false; pumpThumbs(); });
+  }
+
+  // Only fetch thumbnails for items that are on (or near) the screen.
+  var thumbObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      thumbObserver.unobserve(en.target);
+      wantThumb(en.target.dataset.fileId, en.target);
+    });
+  }, { rootMargin: '300px' }) : null;
+
+  function lazyThumb(holder, fileId) {
+    holder.dataset.fileId = fileId || '';
+    if (thumbObserver && fileId) thumbObserver.observe(holder); else wantThumb(fileId, holder);
+  }
+
+  // Save a small copy of a freshly taken Front photo, so its thumbnail shows instantly.
+  function seedThumb(fileId, blob) {
+    return (window.createImageBitmap ? createImageBitmap(blob) : Promise.reject()).then(function (bmp) {
+      var scale = Math.min(1, 240 / Math.max(bmp.width, bmp.height));
+      var c = document.createElement('canvas');
+      c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      if (bmp.close) bmp.close();
+      return canvasToBlob(c);
+    }).then(function (small) { return thumbDB.put(fileId, small); }).catch(function () {});
+  }
 
   // ---- Items tab ----
   var itemsCache = null;
@@ -669,6 +779,7 @@
       var title = it['Title'] || it['Notes'] || '(no title yet)';
       var meta = [it['Brand'], it['Size'], it['Colour']].filter(Boolean).join(' · ');
       row.innerHTML =
+        '<div class="thumb">📷</div>' +
         '<div class="main"><div class="id"></div><div class="title"></div><div class="meta"></div></div>' +
         '<div class="right"><span class="badge"></span><div class="price"></div></div>';
       row.querySelector('.id').textContent = it['Item ID'];
@@ -680,6 +791,7 @@
       row.querySelector('.price').textContent = money(it['Price (£)']);
       row.addEventListener('click', function () { openEdit(it); });
       el.appendChild(row);
+      lazyThumb(row.querySelector('.thumb'), it['Front photo ID']);
     });
   }
 
@@ -689,6 +801,7 @@
   function openEdit(it) {
     editing = it;
     $('editTitle').textContent = it['Item ID'];
+    wantThumb(it['Front photo ID'], $('editThumb'));
     var folder = String(it['Photo folder'] || '');
     $('photosLink').classList.toggle('hidden', folder.indexOf('http') !== 0);
     $('photosLink').href = folder;
